@@ -8,9 +8,16 @@ public class BossController : MonoBehaviour
     private int _bossAttackCycle = 1;
     private float _attackDelay;
 
+    [Header("Enemy Properties")]
+    [SerializeField] private Color _enemyInactiveColor;
+    [SerializeField] private Color _enemyActiveColor;
+
     [Header("References")]
     [SerializeField] private Damageable _damageable;
+    [SerializeField] private Damageable _playerDamageable;
     [SerializeField] private ProjectileController _projectileController;
+    [SerializeField] private Transform[] _spawnPoints;
+    [SerializeField] private GameObject _enemyPrefab;
 
 
     private void Start()
@@ -20,7 +27,7 @@ public class BossController : MonoBehaviour
 
     private void Update()
     {
-        if (_damageable.Health <= 0) GameManager.GameIsPlaying = false;
+        if (_damageable.Health <= 0 || _playerDamageable.Health <= 0) GameManager.GameIsPlaying = false;
     }
 
     // Handle which attack cycle is happening
@@ -30,12 +37,34 @@ public class BossController : MonoBehaviour
         yield return new WaitForSeconds(2f);
         while (GameManager.GameIsPlaying)
         {
-            yield return new WaitForSeconds(_attackDelay);
-            DetermineAttackDelay();
-            if (_bossAttackCycle == 1)
+            if (GameManager.GameIsPlaying)
             {
-                BossAttackCycleOne();
+                yield return new WaitForSeconds(_attackDelay);
+                DetermineAttackCycle();
+                DetermineAttackDelay();
+
+                _projectileController.SpawnProjectile(ProjectileType.Box, _bossAttackCycle);
+                StartCoroutine(SpawnEnemy());
             }
+        }
+    }
+
+    private void DetermineAttackCycle()
+    {
+        if (_damageable.Health > 300)
+        {
+            _bossAttackCycle = 1;
+            return;
+        }
+        else if (_damageable.Health > 150)
+        {
+            _bossAttackCycle = 2;
+            return;
+        }
+        else if (_damageable.Health > 0)
+        {
+            _bossAttackCycle = 3;
+            return;    
         }
     }
 
@@ -44,16 +73,22 @@ public class BossController : MonoBehaviour
     {
         if (_bossAttackCycle == 1)
             _attackDelay = 1.5f;
-        else if (_bossAttackCycle == 2)
+        else
             _attackDelay = 1f;
-        else if (_bossAttackCycle == 2)
-            _attackDelay = 0.5f;
     }
 
-    private void BossAttackCycleOne()
+    private IEnumerator SpawnEnemy()
     {
-        ProjectileType projectileType = GetRandomProjectileType();
-        _projectileController.SpawnProjectile(projectileType, _bossAttackCycle);
+        int randNum = (int)Random.Range(0, 3);
+        // Spawn ghost enemy
+        GameObject enemyObj = Instantiate(_enemyPrefab, _spawnPoints[randNum].position, Quaternion.identity);
+        SpriteRenderer spriteRenderer = enemyObj.GetComponent<SpriteRenderer>();
+        spriteRenderer.color = _enemyInactiveColor;
+        yield return new WaitForSeconds(_attackDelay);
+        // Set enemy active
+        enemyObj.GetComponent<CircleCollider2D>().enabled = true;
+        enemyObj.GetComponent<EnemyMovement>().enabled = true;
+        spriteRenderer.color = _enemyActiveColor;
     }
 
     // Determines which projectile attack to use

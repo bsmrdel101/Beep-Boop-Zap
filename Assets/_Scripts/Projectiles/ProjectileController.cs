@@ -15,6 +15,8 @@ public class ProjectileController : MonoBehaviour
     [SerializeField] private GameObject _boxPrefab;
     [SerializeField] private GameObject _lazerPrefab;
     [SerializeField] private GameObject _bulletPrefab;
+    [SerializeField] private Color _inactiveColor;
+    [SerializeField] private Color _activeColor;
     private float _projectileSpawnDelay;
 
     [Header("References")]
@@ -28,15 +30,12 @@ public class ProjectileController : MonoBehaviour
         if (bossAttackCycle == 1)
             _projectileSpawnDelay = 1.5f;
         else if (bossAttackCycle == 2)
-            _projectileSpawnDelay = 2f;
-
-        // Determines the projectile code that will run
-        if (projectileType == ProjectileType.Box)
-            StartCoroutine(SpawnBoxProjectile());
-        else if (projectileType == ProjectileType.Lazer)
-            StartCoroutine(SpawnLazerProjectile());
+            _projectileSpawnDelay = 1f;
         else
-            StartCoroutine(SpawnBulletProjectile());
+            _projectileSpawnDelay = 0.8f;
+
+        // TEMP: For now it just spawns the box projectile
+        StartCoroutine(SpawnBoxProjectile());
     }
 
     // Spawn box projectile
@@ -45,9 +44,14 @@ public class ProjectileController : MonoBehaviour
         // Spawn ghost projectile
         Vector3 playerPos = _playerObj.transform.position;
         GameObject projectile = Instantiate(_boxPrefab, playerPos, Quaternion.identity);
+        SpriteRenderer spriteRenderer = projectile.GetComponent<SpriteRenderer>();
+        Projectile projectileScript = projectile.GetComponent<Projectile>();
+        spriteRenderer.color = _inactiveColor;
         yield return new WaitForSeconds(_projectileSpawnDelay);
         // Set projectile active
         projectile.GetComponent<BoxCollider2D>().enabled = true;
+        spriteRenderer.color = _activeColor;
+        projectileScript.SpawnParticles.SetActive(true);
         // Remove projectile
         yield return new WaitForSeconds(1f);
         Destroy(projectile);
@@ -58,7 +62,7 @@ public class ProjectileController : MonoBehaviour
     {
         // Spawn ghost projectile
         Vector3 playerPos = _playerObj.transform.position;
-        GameObject projectile = Instantiate(_boxPrefab, playerPos, Quaternion.identity);
+        GameObject projectile = Instantiate(_lazerPrefab, playerPos, Quaternion.identity);
         yield return new WaitForSeconds(_projectileSpawnDelay);
         // Set projectile active
         projectile.GetComponent<BoxCollider2D>().enabled = true;
@@ -72,7 +76,7 @@ public class ProjectileController : MonoBehaviour
     {
         // Spawn ghost projectile
         Vector3 playerPos = _playerObj.transform.position;
-        GameObject projectile = Instantiate(_boxPrefab, playerPos, Quaternion.identity);
+        GameObject projectile = Instantiate(_bulletPrefab, playerPos, Quaternion.identity);
         yield return new WaitForSeconds(_projectileSpawnDelay);
         // Set projectile active
         projectile.GetComponent<CircleCollider2D>().enabled = true;

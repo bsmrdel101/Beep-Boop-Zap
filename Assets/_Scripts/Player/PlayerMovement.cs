@@ -9,20 +9,13 @@ public class PlayerMovement : MonoBehaviour
     private float _horizontal, _vertical;
     private Vector3 _playerInput;
 
-    //   [Header("Animation")]
-    //   [SerializeField] private Animator anim;
-
-    //   [Header("Particles")]
-    //   [SerializeField] private ParticleSystem walkParticles;
-    //   private Vector3 lastPos;
-
     [Header("References")]
     [SerializeField] private Rigidbody2D rb;
 
 
     private void FixedUpdate ()
     {
-      // if (GameManager.paused) return;
+      if (!GameManager.GameIsPlaying) return;
 
       GetInputs();
       MovePlayer();

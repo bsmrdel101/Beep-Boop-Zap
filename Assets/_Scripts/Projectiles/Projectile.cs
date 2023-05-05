@@ -7,6 +7,9 @@ public class Projectile : MonoBehaviour
     [Header("Projectile Properties")]
     [SerializeField] private int _damage;
 
+    [Header("References")]
+    public GameObject SpawnParticles;
+
 
     private void OnTriggerEnter2D(Collider2D collider2D)
     {
